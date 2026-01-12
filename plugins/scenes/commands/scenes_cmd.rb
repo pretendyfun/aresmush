@@ -20,11 +20,13 @@ module AresMUSH
       
       def handle
         if (self.mode == :active)
-          scenes = Scene.all.select { |s| !s.completed }.sort_by { |s| s.is_private? ? s.id.to_i + 1000 : s.id.to_i}
+          scenes = Scene.all.select { |s| !s.completed && (!s.is_private? || s.participant_names.include?(enactor.name)) }.
+sort_by { |s| s.is_private? ? s.id.to_i + 1000 : s.id.to_i}
           template = SceneListTemplate.new(scenes, enactor, true)
-          
+ 
         elsif (self.mode == :open)
-          scenes = Scene.all.select { |s| !s.completed }.sort_by { |s| s.is_private? ? s.id.to_i + 1000 : s.id.to_i}
+          scenes = Scene.all.select { |s| !s.completed && (!s.is_private? || s.participant_names.include?(enactor.name)) }.
+sort_by { |s| s.is_private? ? s.id.to_i + 1000 : s.id.to_i}
           template = SceneListTemplate.new(scenes, enactor, false)
 
         elsif (self.mode == :unshared)
