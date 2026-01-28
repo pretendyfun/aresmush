@@ -13,6 +13,8 @@ module AresMUSH
           self.mode = :open
         when "unshared"
           self.mode = :unshared
+        when "profile"
+          self.mode = :profile
         else
           self.mode = :active
         end
@@ -32,7 +34,13 @@ sort_by { |s| s.is_private? ? s.id.to_i + 1000 : s.id.to_i}
         elsif (self.mode == :unshared)
           scenes = Scene.all.select { |s| Scenes.can_read_scene?(enactor, s) && !s.shared && s.participants.include?(enactor) }.sort_by { |s| s.id.to_i }.reverse
           paginator = Paginator.paginate(scenes, cmd.page, 25)
-          template = SceneSummaryTemplate.new(paginator)
+          template = SceneSummaryTemplate.new(paginator, self.mode)
+          
+        elsif (self.mode == :profile)
+          scenes = Scene.all.select { |s| s.shared && s.participants.include?(enactor) }.sort_by { |s| s.id.to_i }.reverse
+          paginator = Paginator.paginate(scenes, cmd.page, 25)
+          template = SceneSummaryTemplate.new(paginator, self.mode)
+          
 
         elsif (self.mode == :all)
           
@@ -43,9 +51,11 @@ sort_by { |s| s.is_private? ? s.id.to_i + 1000 : s.id.to_i}
           end
           
           paginator = Paginator.paginate(scenes, cmd.page, 25)
-          template = SceneSummaryTemplate.new(paginator)
+          template = SceneSummaryTemplate.new(paginator, self.mode)
+          
         else
           raise "Invalid scene list type: #{self.mode}."
+          
         end
         client.emit template.render
       end
